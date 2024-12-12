@@ -5,7 +5,7 @@ This plugin allows you to add passes and credit cards to Apple Wallet
 ## Install
 
 ```bash
-npm install https://github.com/thib-lambert/TLAppleWalletCapacitorPlugin
+npm install https://github.com/foxulee/AppleWalletCapacitorPlugin
 npx cap sync
 ```
 
