@@ -197,9 +197,9 @@ public class TLAppleWallet: NSObject {
 		self.completeAddPaymentPassCallbackId = call.callbackId
 
 		let requestPayPass = PKAddPaymentPassRequest()
-		requestPayPass.encryptedPassData = Data(hex: encryptedPassData)
-		requestPayPass.ephemeralPublicKey = Data(hex: ephemeralPublicKey)
-		requestPayPass.activationData = Data(hex: activationData)
+        requestPayPass.encryptedPassData = Data(base64Encoded: encryptedPassData, options:[])
+        requestPayPass.ephemeralPublicKey = Data(base64Encoded: ephemeralPublicKey, options:[])
+        requestPayPass.activationData = Data(base64Encoded: activationData, options:[])
 
 		self.provisioningHandler?(requestPayPass)
 	}
@@ -220,9 +220,9 @@ extension TLAppleWallet: PKAddPaymentPassViewControllerDelegate {
 		self.provisioningHandler = handler
 
 		call.resolve([
-			"nonce": nonce,
-			"nonceSignature": nonceSignature,
-			"certificates": certificates
+			"nonce": nonce.base64EncodedString(),
+            "nonceSignature": nonceSignature.base64EncodedString(),
+            "certificates": certificates.map { $0.base64EncodedString() }
 		])
 
 		self.startAddPaymentPassCallbackId = nil
