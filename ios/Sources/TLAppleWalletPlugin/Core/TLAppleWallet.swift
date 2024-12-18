@@ -220,9 +220,9 @@ extension TLAppleWallet: PKAddPaymentPassViewControllerDelegate {
 		self.provisioningHandler = handler
 
 		call.resolve([
-			"nonce": nonce.base64EncodedStringWithOptions(nil),
-			"nonceSignature": nonceSignature.base64EncodedStringWithOptions(nil),
-			"certificates": certificates.map { $0.base64EncodedStringWithOptions(nil) }
+			"nonce": nonce,
+			"nonceSignature": nonceSignature,
+			"certificates": certificates
 		])
 
 		self.startAddPaymentPassCallbackId = nil
