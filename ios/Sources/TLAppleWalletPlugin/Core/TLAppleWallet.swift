@@ -5,7 +5,7 @@ import Capacitor
 
 @objc
 public class TLAppleWallet: NSObject {
-
+    //for checkin test
 	// MARK: - Variables
 	private var passLibrary: PKPassLibrary?
 	private lazy var watchSession: WCSession = {
