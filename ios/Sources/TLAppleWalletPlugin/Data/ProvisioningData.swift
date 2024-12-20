@@ -9,7 +9,7 @@ class ProvisioningData: NSObject {
 	let primaryAccountSuffix: String?
 	let localizedDescription: String
 	let paymentNetwork: PKPaymentNetwork
-	let encryptionScheme: PKEncryptionScheme = .ECC_V2
+	let encryptionScheme: PKEncryptionScheme
 
 	// MARK: - Init
 	init(data: [AnyHashable : Any]?) throws {
@@ -39,7 +39,7 @@ class ProvisioningData: NSObject {
 		default: throw ProvisioningDataError.invalidPaymentNetwork
 		}
 
-		switch encryptionScheme {
+		switch data["encryptionScheme"] as? String {
         case "RSA_V2": self.encryptionScheme = .RSA_V2
         default: self.encryptionScheme = .ECC_V2
         }
