@@ -20,13 +20,13 @@ export interface ProvisioningDataResponse {
    * @type {string}
    */
   nonce: string;
-  
+
   /**
    * Signature of the nonce for verification.
    * @type {string}
    */
   nonceSignature: string;
-  
+
   /**
    * List of certificates used for authentication.
    * @type {string[]}
@@ -44,25 +44,32 @@ export interface ProvisioningDataRequest {
    * @type {string}
    */
   cardholderName: string;
-  
+
   /**
    * Localized description of the card.
    * @type {string}
    */
   localizedDescription: string;
-  
+
   /**
    * Payment network (Visa, MasterCard, etc.).
    * @type {string}
    */
   paymentNetwork: string;
-  
+
   /**
    * Suffix of the primary account (optional).
    * @type {string}
    * @optional
    */
   primaryAccountSuffix?: string;
+
+  /**
+   * EncryptionScheme (optional, default is ECC_V2, can be one of ECC_V2 and RSA_V2).
+   * @type {string}
+   * @optional
+   */
+  encryptionScheme?: string;
 }
 
 /**
@@ -75,13 +82,13 @@ export interface ProvisioningFinalDataRequest {
    * @type {string}
    */
   encryptedPassData: string;
-  
+
   /**
    * Ephemeral public key for encryption.
    * @type {string}
    */
   ephemeralPublicKey: string;
-  
+
   /**
    * Activation data for the card.
    * @type {string}

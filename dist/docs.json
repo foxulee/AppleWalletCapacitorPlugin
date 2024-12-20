@@ -246,6 +246,21 @@
           "docs": "Suffix of the primary account (optional).",
           "complexTypes": [],
           "type": "string | undefined"
+        },
+        {
+          "name": "encryptionScheme",
+          "tags": [
+            {
+              "text": "{string}",
+              "name": "type"
+            },
+            {
+              "name": "optional"
+            }
+          ],
+          "docs": "EncryptionScheme (optional, default is ECC_V2, can be one of ECC_V2 and RSA_V2).",
+          "complexTypes": [],
+          "type": "string | undefined"
         }
       ]
     },

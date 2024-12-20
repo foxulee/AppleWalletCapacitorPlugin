@@ -149,7 +149,7 @@ public class TLAppleWallet: NSObject {
 		self.bridge = bridge
 		self.startAddPaymentPassCallbackId = call.callbackId
 
-		let request = PKAddPaymentPassRequestConfiguration(encryptionScheme: PKEncryptionScheme.ECC_V2)
+		let request = PKAddPaymentPassRequestConfiguration(encryptionScheme: cardData.encryptionScheme)
 		request?.cardholderName = cardData.cardholderName
 		request?.localizedDescription = cardData.localizedDescription
 		request?.primaryAccountSuffix = cardData.primaryAccountSuffix

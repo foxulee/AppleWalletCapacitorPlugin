@@ -55,6 +55,12 @@ export interface ProvisioningDataRequest {
      * @optional
      */
     primaryAccountSuffix?: string;
+    /**
+     * EncryptionScheme (optional, default is ECC_V2, can be one of ECC_V2 and RSA_V2).
+     * @type {string}
+     * @optional
+     */
+    encryptionScheme?: string;
 }
 /**
  * Interface representing the final provisioning data request.

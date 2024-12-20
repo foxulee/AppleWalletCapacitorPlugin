@@ -120,12 +120,13 @@ Interface representing the provisioning data response.
 
 Interface representing the provisioning data request.
 
-| Prop                       | Type                | Description                               |
-| -------------------------- | ------------------- | ----------------------------------------- |
-| **`cardholderName`**       | <code>string</code> | Name of the cardholder.                   |
-| **`localizedDescription`** | <code>string</code> | Localized description of the card.        |
-| **`paymentNetwork`**       | <code>string</code> | Payment network (Visa, MasterCard, etc.). |
-| **`primaryAccountSuffix`** | <code>string</code> | Suffix of the primary account (optional). |
+| Prop                       | Type                | Description                                                                      |
+| -------------------------- | ------------------- | -------------------------------------------------------------------------------- |
+| **`cardholderName`**       | <code>string</code> | Name of the cardholder.                                                          |
+| **`localizedDescription`** | <code>string</code> | Localized description of the card.                                               |
+| **`paymentNetwork`**       | <code>string</code> | Payment network (Visa, MasterCard, etc.).                                        |
+| **`primaryAccountSuffix`** | <code>string</code> | Suffix of the primary account (optional).                                        |
+| **`encryptionScheme`**     | <code>string</code> | EncryptionScheme (optional, default is ECC_V2, can be one of ECC_V2 and RSA_V2). |
 
 
 #### ProvisioningFinalDataRequest
