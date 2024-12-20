@@ -153,7 +153,7 @@ public class TLAppleWallet: NSObject {
 		request?.cardholderName = cardData.cardholderName
 		request?.localizedDescription = cardData.localizedDescription
 		request?.primaryAccountSuffix = cardData.primaryAccountSuffix
-		//request?.style = .payment
+		request?.style = .payment
 		request?.paymentNetwork = cardData.paymentNetwork
 
 		// This info is needed to prevent PKAddPaymentPassViewController to propose already added pass (phone or watch)
