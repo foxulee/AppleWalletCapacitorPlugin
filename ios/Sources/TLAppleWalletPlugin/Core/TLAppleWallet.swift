@@ -22,6 +22,11 @@ public class TLAppleWallet: NSObject {
 	private var bridge: (any CAPBridgeProtocol)?
 	private var provisioningHandler: ((PKAddPaymentPassRequest) -> Void)?
 
+	private var cardholderName: String!
+    private var primaryAccountSuffix: String!
+    private var localizedDescription: String!
+    private var paymentNetwork: PKPaymentNetwork!
+
 	// MARK: - Init
 	@objc
 	public func initialize() throws {
@@ -156,6 +161,11 @@ public class TLAppleWallet: NSObject {
 		request?.style = .payment
 		request?.paymentNetwork = cardData.paymentNetwork
 
+		self.cardholderName = cardData.cardholderName
+        self.primaryAccountSuffix = cardData.primaryAccountSuffix
+        self.localizedDescription = cardData.localizedDescription
+        self.paymentNetwork = cardData.paymentNetwork
+
 		// This info is needed to prevent PKAddPaymentPassViewController to propose already added pass (phone or watch)
 		if #available(iOS 13.4, *) {
 			if let pass = self.fetchIphonePass(cardSuffix: cardData.primaryAccountSuffix) ?? self.fetchWatchPass(cardSuffix: cardData.primaryAccountSuffix),
@@ -203,6 +213,76 @@ public class TLAppleWallet: NSObject {
 
 		self.provisioningHandler?(requestPayPass)
 	}
+
+	@objc
+    func completeAddPaymentPassFromIdiResponseStr(call: CAPPluginCall) throws {
+        guard let options = call.options else { throw AddPaymentError.dataNil }
+
+        guard let jsonString = options["fromIDIResponse"] as? String,
+              !fromIDIResponse.isEmpty
+        else { throw AddPaymentError.encryptedPassData }
+
+        self.completeAddPaymentPassCallbackId = call.callbackId
+
+        if let idiResponse = jsonString.data(using: .utf8){
+            if let response = try JSONSerialization.jsonObject(with: idiResponse, options: .allowFragments) as? [String:String] {
+                if let statusCode = response["statusCode"], statusCode != "SUCCESS" {
+                    print("Error statusCode: \(statusCode)")
+                    throws "Can't finish the request."
+                }
+
+                if let base64WalletDataStr = response["passthruToIdiSdk"], let decodedData = Data(base64Encoded: base64WalletDataStr), let walletData = try JSONSerialization.jsonObject(with: decodedData, options: .allowFragments) as? [String:String], let forWalletSdk = walletData["forWalletSdk"], let decodedWalletSdkData = Data(base64Encoded: forWalletSdk), let forSdkWalletData = try JSONSerialization.jsonObject(with: decodedWalletSdkData, options: .allowFragments) as? [String:String] {
+                    let encryptedPassData = Data(base64Encoded: forSdkWalletData["encryptedPassData"]!)!
+                    let activationData = Data(base64Encoded: forSdkWalletData["activationData"]!)!
+                    let ephemeralKeyData = Data(base64Encoded: forSdkWalletData["ephemeralPublicKey"]!)!
+
+                    let paymentPassRequest = PKAddPaymentPassRequest()
+                    paymentPassRequest.encryptedPassData = encryptedPassData
+                    paymentPassRequest.activationData = activationData
+                    paymentPassRequest.ephemeralPublicKey = ephemeralKeyData
+
+                    self.provisioningHandler?(requestPayPass)
+                }
+            }
+        }
+    }
+
+	private func preparePassThruFromApp(certificates: [Data], nonce: Data, nonceSignature: Data, cardHolderName: String, cardNickname: String, paymentNetwork: PKPaymentNetwork) -> String? {
+        var encodedCertificatesStr = ""
+        for i in 0..<certificates.count {
+            let cert = certificates[i]
+            let encodedCertStr = cert.base64EncodedString()
+            encodedCertificatesStr.append(encodedCertStr)
+            if i != certificates.count - 1 {
+                encodedCertificatesStr.append(", ")
+            }
+        }
+        var appleWalletDict = [String:Any]()
+        appleWalletDict["walletCertificates"] = encodedCertificatesStr
+        appleWalletDict["walletNonce"] = nonce.hexEncodedString()
+        appleWalletDict["walletSignature"] = nonceSignature.hexEncodedString()
+
+        var additionalInfoDict = [String:String]()
+        additionalInfoDict["cardholderName"] = cardHolderName
+        additionalInfoDict["cardNickname"] = cardNickname
+        additionalInfoDict["paymentNetwork"] = paymentNetwork.rawValue // available values are AMEX, DISCOVER, VISA, MASTERCARD
+
+        var jsonDict = [String:String]()
+        jsonDict["walletType"] = "Apple_Pay"
+        do {
+            // Encode wallet data, additional data, and final json
+            let walletData = try JSONSerialization.data(withJSONObject: appleWalletDict, options: .prettyPrinted)
+            jsonDict["walletData"] = walletData.base64EncodedString()
+
+            let additionalData = try JSONSerialization.data(withJSONObject: additionalInfoDict, options: .prettyPrinted)
+            jsonDict["passthruCardDataFromApp"] = additionalData.base64EncodedString()
+
+            let json = try JSONSerialization.data(withJSONObject: jsonDict, options: .prettyPrinted)
+            return json.base64EncodedString()
+        } catch {
+            return nil
+        }
+    }
 }
 
 // MARK: - PKAddPaymentPassViewControllerDelegate
@@ -222,7 +302,8 @@ extension TLAppleWallet: PKAddPaymentPassViewControllerDelegate {
 		call.resolve([
 			"nonce": nonce.base64EncodedString(),
             "nonceSignature": nonceSignature.base64EncodedString(),
-            "certificates": certificates.map { $0.base64EncodedString() }
+            "certificates": certificates.map { $0.base64EncodedString() },
+            "passThruFromApp": self.preparePassThruFromApp(certificates: certificates, nonce: nonce, nonceSignature: nonceSignature, cardHolderName: cardholderName, cardNickname: localizedDescription, paymentNetwork: paymentNetwork)
 		])
 
 		self.startAddPaymentPassCallbackId = nil

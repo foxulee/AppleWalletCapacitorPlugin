@@ -18,6 +18,7 @@ npx cap sync
 * [`openCard(...)`](#opencard)
 * [`startAddPaymentPass(...)`](#startaddpaymentpass)
 * [`completeAddPaymentPass(...)`](#completeaddpaymentpass)
+* [`completeAddPaymentPassFromIdiResponseStr(...)`](#completeaddpaymentpassfromidiresponsestr)
 * [Interfaces](#interfaces)
 
 </docgen-index>
@@ -102,6 +103,21 @@ Completes the process of adding a payment pass.
 --------------------
 
 
+### completeAddPaymentPassFromIdiResponseStr(...)
+
+```typescript
+completeAddPaymentPassFromIdiResponseStr(options: { fromIDIResponse: string; }) => Promise<void>
+```
+
+Completes the process of adding a payment pass.
+
+| Param         | Type                                      |
+| ------------- | ----------------------------------------- |
+| **`options`** | <code>{ fromIDIResponse: string; }</code> |
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -109,11 +125,12 @@ Completes the process of adding a payment pass.
 
 Interface representing the provisioning data response.
 
-| Prop                 | Type                  | Description                                   |
-| -------------------- | --------------------- | --------------------------------------------- |
-| **`nonce`**          | <code>string</code>   | Nonce used to secure communications.          |
-| **`nonceSignature`** | <code>string</code>   | Signature of the nonce for verification.      |
-| **`certificates`**   | <code>string[]</code> | List of certificates used for authentication. |
+| Prop                  | Type                  | Description                                                   |
+| --------------------- | --------------------- | ------------------------------------------------------------- |
+| **`nonce`**           | <code>string</code>   | Nonce used to secure communications.                          |
+| **`nonceSignature`**  | <code>string</code>   | Signature of the nonce for verification.                      |
+| **`certificates`**    | <code>string[]</code> | List of certificates used for authentication.                 |
+| **`passThruFromApp`** | <code>string</code>   | String converted from nonce, nonceSignature and certificates. |
 
 
 #### ProvisioningDataRequest

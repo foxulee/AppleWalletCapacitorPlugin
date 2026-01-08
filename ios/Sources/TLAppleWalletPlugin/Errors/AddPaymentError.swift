@@ -1,13 +1,14 @@
 import Foundation
 
 enum AddPaymentError: String, LocalizedError {
-	
+
 	case dataNil,
 		 encryptedPassData,
 		 ephemeralPublicKey,
-		 activationData
-	
-	
+		 activationData,
+		 fromIDIResponse
+
+
 	var errorDescription: String? {
 		switch self {
 		case .dataNil: return "PARAMETERS IS REQUIRED !"

@@ -32,6 +32,9 @@ var capacitorTLAppleWallet = (function (exports, core) {
         completeAddPaymentPass(_options) {
             throw new Error('Method not implemented on Web !');
         }
+        completeAddPaymentPassFromIdiResponseStr(_options) {
+            throw new Error('Method not implemented on Web !');
+        }
     }
 
     var web = /*#__PURE__*/Object.freeze({

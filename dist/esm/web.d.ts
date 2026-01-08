@@ -12,4 +12,7 @@ export declare class TLAppleWalletWeb extends WebPlugin implements TLAppleWallet
     }): Promise<void>;
     startAddPaymentPass(_options: ProvisioningDataRequest): Promise<ProvisioningDataResponse>;
     completeAddPaymentPass(_options: ProvisioningFinalDataRequest): Promise<void>;
+    completeAddPaymentPassFromIdiResponseStr(_options: {
+        fromIDIResponse: string;
+    }): Promise<void>;
 }

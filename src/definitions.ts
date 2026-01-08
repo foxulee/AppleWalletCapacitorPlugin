@@ -32,6 +32,11 @@ export interface ProvisioningDataResponse {
    * @type {string[]}
    */
   certificates: string[];
+  /**
+   * String converted from nonce, nonceSignature and certificates.
+   * @type {string}
+   */
+  passThruFromApp: string;
 }
 
 /**
@@ -136,4 +141,10 @@ export interface TLAppleWalletPlugin {
    * @returns {Promise<void>} A promise that resolves once the provisioning is complete.
    */
   completeAddPaymentPass(options: ProvisioningFinalDataRequest): Promise<void>;
+  /**
+   * Completes the process of adding a payment pass.
+   * @param {string} options.fromIDIResponse - The final provisioning response string from IDI required to complete the process.
+   * @returns {Promise<void>} A promise that resolves once the provisioning is complete.
+   */
+  completeAddPaymentPassFromIdiResponseStr(options: { fromIDIResponse: string }): Promise<void>;
 }

@@ -129,6 +129,31 @@
           "ProvisioningFinalDataRequest"
         ],
         "slug": "completeaddpaymentpass"
+      },
+      {
+        "name": "completeAddPaymentPassFromIdiResponseStr",
+        "signature": "(options: { fromIDIResponse: string; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ fromIDIResponse: string; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options.fromIDIResponse - The final provisioning response string from IDI required to complete the process."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves once the provisioning is complete."
+          }
+        ],
+        "docs": "Completes the process of adding a payment pass.",
+        "complexTypes": [],
+        "slug": "completeaddpaymentpassfromidiresponsestr"
       }
     ],
     "properties": []
@@ -181,6 +206,18 @@
           "docs": "List of certificates used for authentication.",
           "complexTypes": [],
           "type": "string[]"
+        },
+        {
+          "name": "passThruFromApp",
+          "tags": [
+            {
+              "text": "{string}",
+              "name": "type"
+            }
+          ],
+          "docs": "String converted from nonce, nonceSignature and certificates.",
+          "complexTypes": [],
+          "type": "string"
         }
       ]
     },

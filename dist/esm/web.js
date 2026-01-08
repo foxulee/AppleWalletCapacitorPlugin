@@ -15,5 +15,8 @@ export class TLAppleWalletWeb extends WebPlugin {
     completeAddPaymentPass(_options) {
         throw new Error('Method not implemented on Web !');
     }
+    completeAddPaymentPassFromIdiResponseStr(_options) {
+        throw new Error('Method not implemented on Web !');
+    }
 }
 //# sourceMappingURL=web.js.map
