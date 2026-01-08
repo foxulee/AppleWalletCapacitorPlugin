@@ -219,7 +219,7 @@ public class TLAppleWallet: NSObject {
         guard let options = call.options else { throw AddPaymentError.dataNil }
 
         guard let jsonString = options["fromIDIResponse"] as? String,
-              !fromIDIResponse.isEmpty
+              !jsonString.isEmpty
         else { throw AddPaymentError.encryptedPassData }
 
         self.completeAddPaymentPassCallbackId = call.callbackId
@@ -228,7 +228,7 @@ public class TLAppleWallet: NSObject {
             if let response = try JSONSerialization.jsonObject(with: idiResponse, options: .allowFragments) as? [String:String] {
                 if let statusCode = response["statusCode"], statusCode != "SUCCESS" {
                     print("Error statusCode: \(statusCode)")
-                    throws AddPaymentError.requestNotSuccess
+//                     throws AddPaymentError.requestNotSuccess
                 }
 
                 if let base64WalletDataStr = response["passthruToIdiSdk"], let decodedData = Data(base64Encoded: base64WalletDataStr), let walletData = try JSONSerialization.jsonObject(with: decodedData, options: .allowFragments) as? [String:String], let forWalletSdk = walletData["forWalletSdk"], let decodedWalletSdkData = Data(base64Encoded: forWalletSdk), let forSdkWalletData = try JSONSerialization.jsonObject(with: decodedWalletSdkData, options: .allowFragments) as? [String:String] {
@@ -241,7 +241,7 @@ public class TLAppleWallet: NSObject {
                     paymentPassRequest.activationData = activationData
                     paymentPassRequest.ephemeralPublicKey = ephemeralKeyData
 
-                    self.provisioningHandler?(requestPayPass)
+                    self.provisioningHandler?(paymentPassRequest)
                 }
             }
         }
@@ -325,4 +325,16 @@ extension TLAppleWallet: PKAddPaymentPassViewControllerDelegate {
 			}
 		}
 	}
+}
+
+extension Data {
+    struct HexEncodingOptions: OptionSet {
+        let rawValue: Int
+        static let upperCase = HexEncodingOptions(rawValue: 1 << 0)
+    }
+
+    func hexEncodedString(options: HexEncodingOptions = []) -> String {
+        let format = options.contains(.upperCase) ? "%02hhX" : "%02hhx"
+        return map { String(format: format, $0) }.joined()
+    }
 }
