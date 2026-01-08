@@ -228,7 +228,7 @@ public class TLAppleWallet: NSObject {
             if let response = try JSONSerialization.jsonObject(with: idiResponse, options: .allowFragments) as? [String:String] {
                 if let statusCode = response["statusCode"], statusCode != "SUCCESS" {
                     print("Error statusCode: \(statusCode)")
-                    throws "Can't finish the request."
+                    throws AddPaymentError.requestNotSuccess
                 }
 
                 if let base64WalletDataStr = response["passthruToIdiSdk"], let decodedData = Data(base64Encoded: base64WalletDataStr), let walletData = try JSONSerialization.jsonObject(with: decodedData, options: .allowFragments) as? [String:String], let forWalletSdk = walletData["forWalletSdk"], let decodedWalletSdkData = Data(base64Encoded: forWalletSdk), let forSdkWalletData = try JSONSerialization.jsonObject(with: decodedWalletSdkData, options: .allowFragments) as? [String:String] {
