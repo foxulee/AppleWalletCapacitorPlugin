@@ -216,8 +216,8 @@ public class TLAppleWallet: NSObject {
 
 		guard let options = call.options else { throw AddPaymentError.dataNil }
 
-		guard let jsonString = options["fromIDIResponse"] as? String,
-		!jsonString.isEmpty
+		guard let passthruToIdiSdk = options["passthruToIdiSdk"] as? String,
+		!passthruToIdiSdk.isEmpty
 		else {
 			guard let encryptedPassData = options["encryptedPassData"] as? String,
 			!encryptedPassData.isEmpty
@@ -242,28 +242,18 @@ public class TLAppleWallet: NSObject {
 			return
 		}
 
-		if let idiResponse = jsonString.data(using: .utf8){
-			if let response = try JSONSerialization.jsonObject(with: idiResponse, options: .allowFragments) as? [String:String] {
-				if let statusCode = response["statusCode"], statusCode != "SUCCESS" {
-					print("Error statusCode: \(statusCode)")
-					//                     throws AddPaymentError.requestNotSuccess
-				}
+		if let base64WalletDataStr = response["passthruToIdiSdk"], let decodedData = Data(base64Encoded: base64WalletDataStr), let walletData = try JSONSerialization.jsonObject(with: decodedData, options: .allowFragments) as? [String:String], let forWalletSdk = walletData["forWalletSdk"], let decodedWalletSdkData = Data(base64Encoded: forWalletSdk), let forSdkWalletData = try JSONSerialization.jsonObject(with: decodedWalletSdkData, options: .allowFragments) as? [String:String] {
+			let encryptedPassData = Data(base64Encoded: forSdkWalletData["encryptedPassData"]!)!
+			let activationData = Data(base64Encoded: forSdkWalletData["activationData"]!)!
+			let ephemeralKeyData = Data(base64Encoded: forSdkWalletData["ephemeralPublicKey"]!)!
 
-				if let base64WalletDataStr = response["passthruToIdiSdk"], let decodedData = Data(base64Encoded: base64WalletDataStr), let walletData = try JSONSerialization.jsonObject(with: decodedData, options: .allowFragments) as? [String:String], let forWalletSdk = walletData["forWalletSdk"], let decodedWalletSdkData = Data(base64Encoded: forWalletSdk), let forSdkWalletData = try JSONSerialization.jsonObject(with: decodedWalletSdkData, options: .allowFragments) as? [String:String] {
-					let encryptedPassData = Data(base64Encoded: forSdkWalletData["encryptedPassData"]!)!
-					let activationData = Data(base64Encoded: forSdkWalletData["activationData"]!)!
-					let ephemeralKeyData = Data(base64Encoded: forSdkWalletData["ephemeralPublicKey"]!)!
+			let paymentPassRequest = PKAddPaymentPassRequest()
+			paymentPassRequest.encryptedPassData = encryptedPassData
+			paymentPassRequest.activationData = activationData
+			paymentPassRequest.ephemeralPublicKey = ephemeralKeyData
 
-					let paymentPassRequest = PKAddPaymentPassRequest()
-					paymentPassRequest.encryptedPassData = encryptedPassData
-					paymentPassRequest.activationData = activationData
-					paymentPassRequest.ephemeralPublicKey = ephemeralKeyData
-
-					self.provisioningHandler?(paymentPassRequest)
-				}
-			}
+			self.provisioningHandler?(paymentPassRequest)
 		}
-
 	}
 
 	@objc
