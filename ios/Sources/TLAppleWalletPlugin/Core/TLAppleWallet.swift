@@ -242,7 +242,7 @@ public class TLAppleWallet: NSObject {
 			return
 		}
 
-		if let base64WalletDataStr = response["passthruToIdiSdk"], let decodedData = Data(base64Encoded: base64WalletDataStr), let walletData = try JSONSerialization.jsonObject(with: decodedData, options: .allowFragments) as? [String:String], let forWalletSdk = walletData["forWalletSdk"], let decodedWalletSdkData = Data(base64Encoded: forWalletSdk), let forSdkWalletData = try JSONSerialization.jsonObject(with: decodedWalletSdkData, options: .allowFragments) as? [String:String] {
+		if let decodedData = Data(base64Encoded: passthruToIdiSdk), let walletData = try JSONSerialization.jsonObject(with: decodedData, options: .allowFragments) as? [String:String], let forWalletSdk = walletData["forWalletSdk"], let decodedWalletSdkData = Data(base64Encoded: forWalletSdk), let forSdkWalletData = try JSONSerialization.jsonObject(with: decodedWalletSdkData, options: .allowFragments) as? [String:String] {
 			let encryptedPassData = Data(base64Encoded: forSdkWalletData["encryptedPassData"]!)!
 			let activationData = Data(base64Encoded: forSdkWalletData["activationData"]!)!
 			let ephemeralKeyData = Data(base64Encoded: forSdkWalletData["ephemeralPublicKey"]!)!
