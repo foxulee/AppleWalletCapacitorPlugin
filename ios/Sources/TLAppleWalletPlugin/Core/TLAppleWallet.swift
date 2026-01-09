@@ -216,8 +216,7 @@ public class TLAppleWallet: NSObject {
 
 		guard let options = call.options else { throw AddPaymentError.dataNil }
 
-		guard let passthruToIdiSdk = options["passthruToIdiSdk"] as? String,
-		!passthruToIdiSdk.isEmpty
+		guard let passthruToIdiSdk = options["fromIDIResponse"] as? String
 		else {
 			guard let encryptedPassData = options["encryptedPassData"] as? String,
 			!encryptedPassData.isEmpty
