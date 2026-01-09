@@ -239,6 +239,7 @@ public class TLAppleWallet: NSObject {
 			requestPayPass.activationData = Data(base64Encoded: activationData, options:[])
 
 			self.provisioningHandler?(requestPayPass)
+			return
 		}
 
 		if let idiResponse = jsonString.data(using: .utf8){
