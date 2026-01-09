@@ -190,28 +190,79 @@ public class TLAppleWallet: NSObject {
 
 	@objc
 	func completeAddPaymentPass(call: CAPPluginCall) throws {
+//		guard let options = call.options else { throw AddPaymentError.dataNil }
+//
+//		guard let encryptedPassData = options["encryptedPassData"] as? String,
+//			  !encryptedPassData.isEmpty
+//		else { throw AddPaymentError.encryptedPassData }
+//
+//		guard let ephemeralPublicKey = options["ephemeralPublicKey"] as? String,
+//			  !ephemeralPublicKey.isEmpty
+//		else { throw AddPaymentError.ephemeralPublicKey }
+//
+//		guard let activationData = options["activationData"] as? String,
+//			  !activationData.isEmpty
+//		else { throw AddPaymentError.activationData }
+//
+//		self.completeAddPaymentPassCallbackId = call.callbackId
+//
+//		let requestPayPass = PKAddPaymentPassRequest()
+//        requestPayPass.encryptedPassData = Data(base64Encoded: encryptedPassData, options:[])
+//        requestPayPass.ephemeralPublicKey = Data(base64Encoded: ephemeralPublicKey, options:[])
+//        requestPayPass.activationData = Data(base64Encoded: activationData, options:[])
+//
+//		self.provisioningHandler?(requestPayPass)
+
+
 		guard let options = call.options else { throw AddPaymentError.dataNil }
 
-		guard let encryptedPassData = options["encryptedPassData"] as? String,
-			  !encryptedPassData.isEmpty
-		else { throw AddPaymentError.encryptedPassData }
+		guard let jsonString = options["fromIDIResponse"] as? String,
+		!jsonString.isEmpty
+		else {
+			guard let encryptedPassData = options["encryptedPassData"] as? String,
+			!encryptedPassData.isEmpty
+			else { throw AddPaymentError.encryptedPassData }
 
-		guard let ephemeralPublicKey = options["ephemeralPublicKey"] as? String,
-			  !ephemeralPublicKey.isEmpty
-		else { throw AddPaymentError.ephemeralPublicKey }
+			guard let ephemeralPublicKey = options["ephemeralPublicKey"] as? String,
+			!ephemeralPublicKey.isEmpty
+			else { throw AddPaymentError.ephemeralPublicKey }
 
-		guard let activationData = options["activationData"] as? String,
-			  !activationData.isEmpty
-		else { throw AddPaymentError.activationData }
+			guard let activationData = options["activationData"] as? String,
+			!activationData.isEmpty
+			else { throw AddPaymentError.activationData }
 
-		self.completeAddPaymentPassCallbackId = call.callbackId
+			self.completeAddPaymentPassCallbackId = call.callbackId
 
-		let requestPayPass = PKAddPaymentPassRequest()
-        requestPayPass.encryptedPassData = Data(base64Encoded: encryptedPassData, options:[])
-        requestPayPass.ephemeralPublicKey = Data(base64Encoded: ephemeralPublicKey, options:[])
-        requestPayPass.activationData = Data(base64Encoded: activationData, options:[])
+			let requestPayPass = PKAddPaymentPassRequest()
+			requestPayPass.encryptedPassData = Data(base64Encoded: encryptedPassData, options:[])
+			requestPayPass.ephemeralPublicKey = Data(base64Encoded: ephemeralPublicKey, options:[])
+			requestPayPass.activationData = Data(base64Encoded: activationData, options:[])
 
-		self.provisioningHandler?(requestPayPass)
+			self.provisioningHandler?(requestPayPass)
+		}
+
+		if let idiResponse = jsonString.data(using: .utf8){
+			if let response = try JSONSerialization.jsonObject(with: idiResponse, options: .allowFragments) as? [String:String] {
+				if let statusCode = response["statusCode"], statusCode != "SUCCESS" {
+					print("Error statusCode: \(statusCode)")
+					//                     throws AddPaymentError.requestNotSuccess
+				}
+
+				if let base64WalletDataStr = response["passthruToIdiSdk"], let decodedData = Data(base64Encoded: base64WalletDataStr), let walletData = try JSONSerialization.jsonObject(with: decodedData, options: .allowFragments) as? [String:String], let forWalletSdk = walletData["forWalletSdk"], let decodedWalletSdkData = Data(base64Encoded: forWalletSdk), let forSdkWalletData = try JSONSerialization.jsonObject(with: decodedWalletSdkData, options: .allowFragments) as? [String:String] {
+					let encryptedPassData = Data(base64Encoded: forSdkWalletData["encryptedPassData"]!)!
+					let activationData = Data(base64Encoded: forSdkWalletData["activationData"]!)!
+					let ephemeralKeyData = Data(base64Encoded: forSdkWalletData["ephemeralPublicKey"]!)!
+
+					let paymentPassRequest = PKAddPaymentPassRequest()
+					paymentPassRequest.encryptedPassData = encryptedPassData
+					paymentPassRequest.activationData = activationData
+					paymentPassRequest.ephemeralPublicKey = ephemeralKeyData
+
+					self.provisioningHandler?(paymentPassRequest)
+				}
+			}
+		}
+
 	}
 
 	@objc

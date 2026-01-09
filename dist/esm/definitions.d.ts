@@ -87,6 +87,11 @@ export interface ProvisioningFinalDataRequest {
      * @type {string}
      */
     activationData: string;
+    /**
+     * FromIDIResponse data for the card.
+     * @type {string}
+     */
+    fromIDIResponse: string;
 }
 /**
  * Interface representing the Apple Wallet plugin.

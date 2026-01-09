@@ -155,5 +155,6 @@ Interface representing the final provisioning data request.
 | **`encryptedPassData`**  | <code>string</code> | Encrypted card data.                 |
 | **`ephemeralPublicKey`** | <code>string</code> | Ephemeral public key for encryption. |
 | **`activationData`**     | <code>string</code> | Activation data for the card.        |
+| **`fromIDIResponse`**    | <code>string</code> | FromIDIResponse data for the card.   |
 
 </docgen-api>

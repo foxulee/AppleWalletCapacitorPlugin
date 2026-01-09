@@ -348,6 +348,18 @@
           "docs": "Activation data for the card.",
           "complexTypes": [],
           "type": "string"
+        },
+        {
+          "name": "fromIDIResponse",
+          "tags": [
+            {
+              "text": "{string}",
+              "name": "type"
+            }
+          ],
+          "docs": "FromIDIResponse data for the card.",
+          "complexTypes": [],
+          "type": "string"
         }
       ]
     }
