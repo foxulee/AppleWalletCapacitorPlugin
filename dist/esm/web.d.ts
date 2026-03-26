@@ -1,5 +1,6 @@
 import { WebPlugin } from '@capacitor/core';
 import type { ProvisioningDataRequest, ProvisioningDataResponse, ProvisioningFinalDataRequest, TLAppleWalletPlugin } from './definitions';
+import { ProvisioningFinalDataResponse } from "./definitions";
 export declare class TLAppleWalletWeb extends WebPlugin implements TLAppleWalletPlugin {
     initialize(): Promise<void>;
     getActionsAvailableForCardSuffix(_options: {
@@ -11,7 +12,7 @@ export declare class TLAppleWalletWeb extends WebPlugin implements TLAppleWallet
         cardSuffix: string;
     }): Promise<void>;
     startAddPaymentPass(_options: ProvisioningDataRequest): Promise<ProvisioningDataResponse>;
-    completeAddPaymentPass(_options: ProvisioningFinalDataRequest): Promise<boolean>;
+    completeAddPaymentPass(_options: ProvisioningFinalDataRequest): Promise<ProvisioningFinalDataResponse>;
     completeAddPaymentPassFromIdiResponseStr(_options: {
         fromIDIResponse: string;
     }): Promise<void>;

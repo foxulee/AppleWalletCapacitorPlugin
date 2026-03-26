@@ -1,6 +1,7 @@
 import { WebPlugin } from '@capacitor/core';
 
 import type { ProvisioningDataRequest, ProvisioningDataResponse, ProvisioningFinalDataRequest, TLAppleWalletPlugin } from './definitions';
+import {ProvisioningFinalDataResponse} from "./definitions";
 
 export class TLAppleWalletWeb extends WebPlugin implements TLAppleWalletPlugin {
 
@@ -19,7 +20,7 @@ export class TLAppleWalletWeb extends WebPlugin implements TLAppleWalletPlugin {
   startAddPaymentPass(_options: ProvisioningDataRequest): Promise<ProvisioningDataResponse> {
     throw new Error('Method not implemented on Web !');
   }
-  completeAddPaymentPass(_options: ProvisioningFinalDataRequest): Promise<boolean> {
+  completeAddPaymentPass(_options: ProvisioningFinalDataRequest): Promise<ProvisioningFinalDataResponse> {
     throw new Error('Method not implemented on Web !');
   }
 

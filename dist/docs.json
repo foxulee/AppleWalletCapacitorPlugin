@@ -105,7 +105,7 @@
       },
       {
         "name": "completeAddPaymentPass",
-        "signature": "(options: ProvisioningFinalDataRequest) => Promise<boolean>",
+        "signature": "(options: ProvisioningFinalDataRequest) => Promise<ProvisioningFinalDataResponse>",
         "parameters": [
           {
             "name": "options",
@@ -113,7 +113,7 @@
             "type": "ProvisioningFinalDataRequest"
           }
         ],
-        "returns": "Promise<boolean>",
+        "returns": "Promise<ProvisioningFinalDataResponse>",
         "tags": [
           {
             "name": "param",
@@ -126,6 +126,7 @@
         ],
         "docs": "Completes the process of adding a payment pass.",
         "complexTypes": [
+          "ProvisioningFinalDataResponse",
           "ProvisioningFinalDataRequest"
         ],
         "slug": "completeaddpaymentpass"
@@ -298,6 +299,32 @@
           "docs": "EncryptionScheme (optional, default is ECC_V2, can be one of ECC_V2 and RSA_V2).",
           "complexTypes": [],
           "type": "string | undefined"
+        }
+      ]
+    },
+    {
+      "name": "ProvisioningFinalDataResponse",
+      "slug": "provisioningfinaldataresponse",
+      "docs": "Interface representing the final provisioning data response.",
+      "tags": [
+        {
+          "text": "ProvisioningFinalDataResponse",
+          "name": "interface"
+        }
+      ],
+      "methods": [],
+      "properties": [
+        {
+          "name": "isSuccess",
+          "tags": [
+            {
+              "text": "{boolean}",
+              "name": "type"
+            }
+          ],
+          "docs": "Success indicator",
+          "complexTypes": [],
+          "type": "boolean"
         }
       ]
     },

@@ -108,6 +108,18 @@ export interface ProvisioningFinalDataRequest {
 }
 
 /**
+ * Interface representing the final provisioning data response.
+ * @interface ProvisioningFinalDataResponse
+ */
+export interface ProvisioningFinalDataResponse {
+  /**
+   * Success indicator
+   * @type {boolean}
+   */
+  isSuccess: boolean
+}
+
+/**
  * Interface representing the Apple Wallet plugin.
  * @interface TLAppleWalletPlugin
  */
@@ -144,9 +156,9 @@ export interface TLAppleWalletPlugin {
   /**
    * Completes the process of adding a payment pass.
    * @param {ProvisioningFinalDataRequest} options - The final provisioning data required to complete the process.
-   * @returns {Promise<void>} A promise that resolves once the provisioning is complete.
+   * @returns {Promise<ProvisioningFinalDataResponse>} A promise that resolves once the provisioning is complete.
    */
-  completeAddPaymentPass(options: ProvisioningFinalDataRequest): Promise<boolean>;
+  completeAddPaymentPass(options: ProvisioningFinalDataRequest): Promise<ProvisioningFinalDataResponse>;
   /**
    * Completes the process of adding a payment pass.
    * @param {string} options.fromIDIResponse - The final provisioning response string from IDI required to complete the process.

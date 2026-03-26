@@ -91,7 +91,7 @@ Starts the process of adding a payment pass.
 ### completeAddPaymentPass(...)
 
 ```typescript
-completeAddPaymentPass(options: ProvisioningFinalDataRequest) => Promise<boolean>
+completeAddPaymentPass(options: ProvisioningFinalDataRequest) => Promise<ProvisioningFinalDataResponse>
 ```
 
 Completes the process of adding a payment pass.
@@ -100,7 +100,7 @@ Completes the process of adding a payment pass.
 | ------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **`options`** | <code><a href="#provisioningfinaldatarequest">ProvisioningFinalDataRequest</a></code> | - The final provisioning data required to complete the process. |
 
-**Returns:** <code>Promise&lt;boolean&gt;</code>
+**Returns:** <code>Promise&lt;<a href="#provisioningfinaldataresponse">ProvisioningFinalDataResponse</a>&gt;</code>
 
 --------------------
 
@@ -146,6 +146,15 @@ Interface representing the provisioning data request.
 | **`paymentNetwork`**       | <code>string</code> | Payment network (Visa, MasterCard, etc.).                                        |
 | **`primaryAccountSuffix`** | <code>string</code> | Suffix of the primary account (optional).                                        |
 | **`encryptionScheme`**     | <code>string</code> | EncryptionScheme (optional, default is ECC_V2, can be one of ECC_V2 and RSA_V2). |
+
+
+#### ProvisioningFinalDataResponse
+
+Interface representing the final provisioning data response.
+
+| Prop            | Type                 | Description       |
+| --------------- | -------------------- | ----------------- |
+| **`isSuccess`** | <code>boolean</code> | Success indicator |
 
 
 #### ProvisioningFinalDataRequest
