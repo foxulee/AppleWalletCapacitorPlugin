@@ -134,7 +134,7 @@ export interface TLAppleWalletPlugin {
      * @param {ProvisioningFinalDataRequest} options - The final provisioning data required to complete the process.
      * @returns {Promise<void>} A promise that resolves once the provisioning is complete.
      */
-    completeAddPaymentPass(options: ProvisioningFinalDataRequest): Promise<void>;
+    completeAddPaymentPass(options: ProvisioningFinalDataRequest): Promise<boolean>;
     /**
      * Completes the process of adding a payment pass.
      * @param {string} options.fromIDIResponse - The final provisioning response string from IDI required to complete the process.

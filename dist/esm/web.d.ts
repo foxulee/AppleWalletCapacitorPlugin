@@ -11,7 +11,7 @@ export declare class TLAppleWalletWeb extends WebPlugin implements TLAppleWallet
         cardSuffix: string;
     }): Promise<void>;
     startAddPaymentPass(_options: ProvisioningDataRequest): Promise<ProvisioningDataResponse>;
-    completeAddPaymentPass(_options: ProvisioningFinalDataRequest): Promise<void>;
+    completeAddPaymentPass(_options: ProvisioningFinalDataRequest): Promise<boolean>;
     completeAddPaymentPassFromIdiResponseStr(_options: {
         fromIDIResponse: string;
     }): Promise<void>;

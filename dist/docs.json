@@ -105,7 +105,7 @@
       },
       {
         "name": "completeAddPaymentPass",
-        "signature": "(options: ProvisioningFinalDataRequest) => Promise<void>",
+        "signature": "(options: ProvisioningFinalDataRequest) => Promise<boolean>",
         "parameters": [
           {
             "name": "options",
@@ -113,7 +113,7 @@
             "type": "ProvisioningFinalDataRequest"
           }
         ],
-        "returns": "Promise<void>",
+        "returns": "Promise<boolean>",
         "tags": [
           {
             "name": "param",

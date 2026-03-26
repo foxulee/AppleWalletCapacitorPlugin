@@ -91,7 +91,7 @@ Starts the process of adding a payment pass.
 ### completeAddPaymentPass(...)
 
 ```typescript
-completeAddPaymentPass(options: ProvisioningFinalDataRequest) => Promise<void>
+completeAddPaymentPass(options: ProvisioningFinalDataRequest) => Promise<boolean>
 ```
 
 Completes the process of adding a payment pass.
@@ -99,6 +99,8 @@ Completes the process of adding a payment pass.
 | Param         | Type                                                                                  | Description                                                     |
 | ------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **`options`** | <code><a href="#provisioningfinaldatarequest">ProvisioningFinalDataRequest</a></code> | - The final provisioning data required to complete the process. |
+
+**Returns:** <code>Promise&lt;boolean&gt;</code>
 
 --------------------
 

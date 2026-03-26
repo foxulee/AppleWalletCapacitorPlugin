@@ -6,256 +6,275 @@ import Capacitor
 @objc
 public class TLAppleWallet: NSObject {
     //for checkin test
-	// MARK: - Variables
-	private var passLibrary: PKPassLibrary?
-	private lazy var watchSession: WCSession = {
-		let session = WCSession.default
-		return session
-	}()
+  // MARK: - Variables
+  private var passLibrary: PKPassLibrary?
+  private lazy var watchSession: WCSession = {
+    let session = WCSession.default
+    return session
+  }()
 
-	private var isPairedWithWatch: Bool {
-		self.watchSession.isPaired
-	}
+  private var isPairedWithWatch: Bool {
+    self.watchSession.isPaired
+  }
 
-	private var startAddPaymentPassCallbackId: String?
-	private var completeAddPaymentPassCallbackId: String?
-	private var bridge: (any CAPBridgeProtocol)?
-	private var provisioningHandler: ((PKAddPaymentPassRequest) -> Void)?
+  private var startAddPaymentPassCallbackId: String?
+  private var completeAddPaymentPassCallbackId: String?
+  private var bridge: (any CAPBridgeProtocol)?
+  private var provisioningHandler: ((PKAddPaymentPassRequest) -> Void)?
 
-	private var cardholderName: String!
+  private var cardholderName: String!
     private var primaryAccountSuffix: String!
     private var localizedDescription: String!
     private var paymentNetwork: PKPaymentNetwork!
+    private var isRequestIssuedSuccess: Bool!
+    private var isRequestIssued: Bool!
 
-	// MARK: - Init
-	@objc
-	public func initialize() throws {
-		guard PKPassLibrary.isPassLibraryAvailable() && PKAddPaymentPassViewController.canAddPaymentPass()
-		else { throw ApplePayError.passLibraryUnavailable }
+  // MARK: - Init
+  @objc
+  public func initialize() throws {
+    guard PKPassLibrary.isPassLibraryAvailable() && PKAddPaymentPassViewController.canAddPaymentPass()
+    else { throw ApplePayError.passLibraryUnavailable }
 
-		self.passLibrary = PKPassLibrary()
+    self.passLibrary = PKPassLibrary()
 
-		if WCSession.isSupported() {
-			self.watchSession.activate()
-		}
-	}
+    if WCSession.isSupported() {
+      self.watchSession.activate()
+    }
+  }
 
-	// MARK: - Utils
-	@objc
-	public func getActionsAvailable(for cardSuffix: String?) throws -> [Int] {
-		guard let cardSuffix else { return [] }
+  // MARK: - Utils
+  @objc
+  public func getActionsAvailable(for cardSuffix: String?) throws -> [Int] {
+    guard let cardSuffix else { return [] }
 
-		var buttons: [Int] = []
-		if self.canAddPass(cardSuffix: cardSuffix) {
-			buttons.append(0) // ADD
-		}
+    var buttons: [Int] = []
+    if self.canAddPass(cardSuffix: cardSuffix) {
+      buttons.append(0) // ADD
+    }
 
-		if self.canPayWithPass(cardSuffix: cardSuffix) {
-			buttons.append(1) // PAY
-		}
+    if self.canPayWithPass(cardSuffix: cardSuffix) {
+      buttons.append(1) // PAY
+    }
 
-		return buttons
-	}
+    return buttons
+  }
 
-	private func canAddPass(cardSuffix: String?) -> Bool {
-		// Able to add to iPhone
-		if self.fetchIphonePass(cardSuffix: cardSuffix) == nil {
-			return true
-		}
+  private func canAddPass(cardSuffix: String?) -> Bool {
+    // Able to add to iPhone
+    if self.fetchIphonePass(cardSuffix: cardSuffix) == nil {
+      return true
+    }
 
-		// Able to add to Watch
-		if #available(iOS 13.4, *) {
-			if let iPhonePassIdentifier = self.fetchIphonePass(cardSuffix: cardSuffix)?.secureElementPass?.primaryAccountIdentifier,
-			   self.passLibrary?.canAddSecureElementPass(primaryAccountIdentifier: iPhonePassIdentifier) ?? false,
-			   self.fetchWatchPass(cardSuffix: cardSuffix) == nil {
-				return true
-			}
-		} else {
-			if let iPhonePassIdentifier = self.fetchIphonePass(cardSuffix: cardSuffix)?.paymentPass?.primaryAccountIdentifier,
-			   self.passLibrary?.canAddPaymentPass(withPrimaryAccountIdentifier: iPhonePassIdentifier) ?? false,
-			   self.fetchWatchPass(cardSuffix: cardSuffix) == nil {
-				return true
-			}
-		}
+    // Able to add to Watch
+    if #available(iOS 13.4, *) {
+      if let iPhonePassIdentifier = self.fetchIphonePass(cardSuffix: cardSuffix)?.secureElementPass?.primaryAccountIdentifier,
+         self.passLibrary?.canAddSecureElementPass(primaryAccountIdentifier: iPhonePassIdentifier) ?? false,
+         self.fetchWatchPass(cardSuffix: cardSuffix) == nil {
+        return true
+      }
+    } else {
+      if let iPhonePassIdentifier = self.fetchIphonePass(cardSuffix: cardSuffix)?.paymentPass?.primaryAccountIdentifier,
+         self.passLibrary?.canAddPaymentPass(withPrimaryAccountIdentifier: iPhonePassIdentifier) ?? false,
+         self.fetchWatchPass(cardSuffix: cardSuffix) == nil {
+        return true
+      }
+    }
 
-		return false
-	}
+    return false
+  }
 
-	private func canPayWithPass(cardSuffix: String?) -> Bool {
-		self.fetchIphonePass(cardSuffix: cardSuffix) != nil
-	}
+  private func canPayWithPass(cardSuffix: String?) -> Bool {
+    self.fetchIphonePass(cardSuffix: cardSuffix) != nil
+  }
 
-	private func fetchIphonePass(cardSuffix: String?) -> PKPass? {
-		if #available(iOS 13.4, *) {
-			return self.passLibrary?
-				.passes()
-				.first {
-					$0.secureElementPass?.primaryAccountNumberSuffix == cardSuffix
-				}
-		} else {
-			return self.passLibrary?
-				.passes()
-				.first {
-					$0.paymentPass?.primaryAccountNumberSuffix == cardSuffix
-				}
-		}
-	}
+  private func fetchIphonePass(cardSuffix: String?) -> PKPass? {
+    if #available(iOS 13.4, *) {
+      return self.passLibrary?
+        .passes()
+        .first {
+          $0.secureElementPass?.primaryAccountNumberSuffix == cardSuffix
+        }
+    } else {
+      return self.passLibrary?
+        .passes()
+        .first {
+          $0.paymentPass?.primaryAccountNumberSuffix == cardSuffix
+        }
+    }
+  }
 
-	private func fetchWatchPass(cardSuffix: String?) -> PKPass? {
-		guard self.isPairedWithWatch else { return nil }
+  private func fetchWatchPass(cardSuffix: String?) -> PKPass? {
+    guard self.isPairedWithWatch else { return nil }
 
-		if #available(iOS 13.4, *) {
-			return self.passLibrary?
-				.remoteSecureElementPasses
-				.first {
-					$0.secureElementPass?.primaryAccountNumberSuffix == cardSuffix
-				}
-		} else {
-			return self.passLibrary?
-				.remotePaymentPasses()
-				.first {
-					$0.paymentPass?.primaryAccountNumberSuffix == cardSuffix
-				}
-		}
-	}
+    if #available(iOS 13.4, *) {
+      return self.passLibrary?
+        .remoteSecureElementPasses
+        .first {
+          $0.secureElementPass?.primaryAccountNumberSuffix == cardSuffix
+        }
+    } else {
+      return self.passLibrary?
+        .remotePaymentPasses()
+        .first {
+          $0.paymentPass?.primaryAccountNumberSuffix == cardSuffix
+        }
+    }
+  }
 
-	@objc
-	func openCard(cardSuffix: String?) throws {
-		if #available(iOS 13.4, *) {
-			guard let currentPass = self.fetchIphonePass(cardSuffix: cardSuffix),
-				  let paymentPass = currentPass.secureElementPass
-			else { throw ApplePayError.cardNotFound }
+  @objc
+  func openCard(cardSuffix: String?) throws {
+    if #available(iOS 13.4, *) {
+      guard let currentPass = self.fetchIphonePass(cardSuffix: cardSuffix),
+          let paymentPass = currentPass.secureElementPass
+      else { throw ApplePayError.cardNotFound }
 
-			if paymentPass.passActivationState == .requiresActivation,
-			   let passUrl = paymentPass.passURL {
-				UIApplication.shared.open(passUrl, options: [:], completionHandler: nil)
-			} else {
-				self.passLibrary?.present(paymentPass)
-			}
-		} else {
-			guard let currentPass = self.fetchIphonePass(cardSuffix: cardSuffix),
-				  let paymentPass = currentPass.paymentPass
-			else { throw ApplePayError.cardNotFound }
+      if paymentPass.passActivationState == .requiresActivation,
+         let passUrl = paymentPass.passURL {
+        UIApplication.shared.open(passUrl, options: [:], completionHandler: nil)
+      } else {
+        self.passLibrary?.present(paymentPass)
+      }
+    } else {
+      guard let currentPass = self.fetchIphonePass(cardSuffix: cardSuffix),
+          let paymentPass = currentPass.paymentPass
+      else { throw ApplePayError.cardNotFound }
 
-			if paymentPass.passActivationState == .requiresActivation,
-			   let passUrl = paymentPass.passURL {
-				UIApplication.shared.open(passUrl, options: [:], completionHandler: nil)
-			} else {
-				self.passLibrary?.present(paymentPass)
-			}
-		}
-	}
+      if paymentPass.passActivationState == .requiresActivation,
+         let passUrl = paymentPass.passURL {
+        UIApplication.shared.open(passUrl, options: [:], completionHandler: nil)
+      } else {
+        self.passLibrary?.present(paymentPass)
+      }
+    }
+  }
 
-	// MARK: - Provisioning
-	@objc
-	func startAddPaymentPass(call: CAPPluginCall,
-							 bridge: (any CAPBridgeProtocol)?) throws {
-		let cardData = try ProvisioningData(data: call.options)
-		self.bridge = bridge
-		self.startAddPaymentPassCallbackId = call.callbackId
+  // MARK: - Provisioning
+  @objc
+  func startAddPaymentPass(call: CAPPluginCall,
+               bridge: (any CAPBridgeProtocol)?) throws {
+    let cardData = try ProvisioningData(data: call.options)
+    self.bridge = bridge
+    self.startAddPaymentPassCallbackId = call.callbackId
 
-		let request = PKAddPaymentPassRequestConfiguration(encryptionScheme: cardData.encryptionScheme)
-		request?.cardholderName = cardData.cardholderName
-		request?.localizedDescription = cardData.localizedDescription
-		request?.primaryAccountSuffix = cardData.primaryAccountSuffix
-		request?.style = .payment
-		request?.paymentNetwork = cardData.paymentNetwork
+    let request = PKAddPaymentPassRequestConfiguration(encryptionScheme: cardData.encryptionScheme)
+    request?.cardholderName = cardData.cardholderName
+    request?.localizedDescription = cardData.localizedDescription
+    request?.primaryAccountSuffix = cardData.primaryAccountSuffix
+    request?.style = .payment
+    request?.paymentNetwork = cardData.paymentNetwork
 
-		self.cardholderName = cardData.cardholderName
+    self.cardholderName = cardData.cardholderName
         self.primaryAccountSuffix = cardData.primaryAccountSuffix
         self.localizedDescription = cardData.localizedDescription
         self.paymentNetwork = cardData.paymentNetwork
 
-		// This info is needed to prevent PKAddPaymentPassViewController to propose already added pass (phone or watch)
-		if #available(iOS 13.4, *) {
-			if let pass = self.fetchIphonePass(cardSuffix: cardData.primaryAccountSuffix) ?? self.fetchWatchPass(cardSuffix: cardData.primaryAccountSuffix),
-			   let primaryAccountIdentifier = pass.secureElementPass?.primaryAccountIdentifier {
-				request?.primaryAccountIdentifier = primaryAccountIdentifier
-			}
-		} else {
-			if let pass = self.fetchIphonePass(cardSuffix: cardData.primaryAccountSuffix) ?? self.fetchWatchPass(cardSuffix: cardData.primaryAccountSuffix),
-			   let primaryAccountIdentifier = pass.paymentPass?.primaryAccountIdentifier {
-				request?.primaryAccountIdentifier = primaryAccountIdentifier
-			}
-		}
+    // This info is needed to prevent PKAddPaymentPassViewController to propose already added pass (phone or watch)
+    if #available(iOS 13.4, *) {
+      if let pass = self.fetchIphonePass(cardSuffix: cardData.primaryAccountSuffix) ?? self.fetchWatchPass(cardSuffix: cardData.primaryAccountSuffix),
+         let primaryAccountIdentifier = pass.secureElementPass?.primaryAccountIdentifier {
+        request?.primaryAccountIdentifier = primaryAccountIdentifier
+      }
+    } else {
+      if let pass = self.fetchIphonePass(cardSuffix: cardData.primaryAccountSuffix) ?? self.fetchWatchPass(cardSuffix: cardData.primaryAccountSuffix),
+         let primaryAccountIdentifier = pass.paymentPass?.primaryAccountIdentifier {
+        request?.primaryAccountIdentifier = primaryAccountIdentifier
+      }
+    }
 
-		guard let request,
-			  let addPaymentPassViewController = PKAddPaymentPassViewController(requestConfiguration: request, delegate: self),
-			  let topViewController = self.bridge?.viewController
-		else { throw ProvisioningError() }
+    guard let request,
+        let addPaymentPassViewController = PKAddPaymentPassViewController(requestConfiguration: request, delegate: self),
+        let topViewController = self.bridge?.viewController
+    else { throw ProvisioningError() }
 
-		self.bridge?.saveCall(call)
-		topViewController.present(addPaymentPassViewController, animated: true)
-	}
+    self.bridge?.saveCall(call)
+    topViewController.present(addPaymentPassViewController, animated: true)
+  }
 
-	@objc
-	func completeAddPaymentPass(call: CAPPluginCall) throws {
-//		guard let options = call.options else { throw AddPaymentError.dataNil }
+  @objc
+  func completeAddPaymentPass(call: CAPPluginCall) throws {
+//    guard let options = call.options else { throw AddPaymentError.dataNil }
 //
-//		guard let encryptedPassData = options["encryptedPassData"] as? String,
-//			  !encryptedPassData.isEmpty
-//		else { throw AddPaymentError.encryptedPassData }
+//    guard let encryptedPassData = options["encryptedPassData"] as? String,
+//        !encryptedPassData.isEmpty
+//    else { throw AddPaymentError.encryptedPassData }
 //
-//		guard let ephemeralPublicKey = options["ephemeralPublicKey"] as? String,
-//			  !ephemeralPublicKey.isEmpty
-//		else { throw AddPaymentError.ephemeralPublicKey }
+//    guard let ephemeralPublicKey = options["ephemeralPublicKey"] as? String,
+//        !ephemeralPublicKey.isEmpty
+//    else { throw AddPaymentError.ephemeralPublicKey }
 //
-//		guard let activationData = options["activationData"] as? String,
-//			  !activationData.isEmpty
-//		else { throw AddPaymentError.activationData }
+//    guard let activationData = options["activationData"] as? String,
+//        !activationData.isEmpty
+//    else { throw AddPaymentError.activationData }
 //
-//		self.completeAddPaymentPassCallbackId = call.callbackId
+//    self.completeAddPaymentPassCallbackId = call.callbackId
 //
-//		let requestPayPass = PKAddPaymentPassRequest()
+//    let requestPayPass = PKAddPaymentPassRequest()
 //        requestPayPass.encryptedPassData = Data(base64Encoded: encryptedPassData, options:[])
 //        requestPayPass.ephemeralPublicKey = Data(base64Encoded: ephemeralPublicKey, options:[])
 //        requestPayPass.activationData = Data(base64Encoded: activationData, options:[])
 //
-//		self.provisioningHandler?(requestPayPass)
+//    self.provisioningHandler?(requestPayPass)
+
+        if (self.isRequestIssued == true){
+            if (self.isRequestIssuedSuccess == false){
+                // Upcall with the data error
+                //commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"error"];
+                call.reject("error");
+            }else{
+                // Upcall with the data success
+                // commandResult= [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"];
+              call.resolve(true);
+            }
+//             [commandResult setKeepCallback:[NSNumber numberWithBool:YES]];
+//             [self.commandDelegate sendPluginResult:commandResult callbackId:self.completionCallbackId];
+            return;
+        }
 
 
-		guard let options = call.options else { throw AddPaymentError.dataNil }
+    guard let options = call.options else { throw AddPaymentError.dataNil }
 
-		guard let passthruToIdiSdk = options["fromIDIResponse"] as? String
-		else {
-			guard let encryptedPassData = options["encryptedPassData"] as? String,
-			!encryptedPassData.isEmpty
-			else { throw AddPaymentError.encryptedPassData }
+    guard let passthruToIdiSdk = options["fromIDIResponse"] as? String
+    else {
+      guard let encryptedPassData = options["encryptedPassData"] as? String,
+      !encryptedPassData.isEmpty
+      else { throw AddPaymentError.encryptedPassData }
 
-			guard let ephemeralPublicKey = options["ephemeralPublicKey"] as? String,
-			!ephemeralPublicKey.isEmpty
-			else { throw AddPaymentError.ephemeralPublicKey }
+      guard let ephemeralPublicKey = options["ephemeralPublicKey"] as? String,
+      !ephemeralPublicKey.isEmpty
+      else { throw AddPaymentError.ephemeralPublicKey }
 
-			guard let activationData = options["activationData"] as? String,
-			!activationData.isEmpty
-			else { throw AddPaymentError.activationData }
+      guard let activationData = options["activationData"] as? String,
+      !activationData.isEmpty
+      else { throw AddPaymentError.activationData }
 
-			self.completeAddPaymentPassCallbackId = call.callbackId
+      self.completeAddPaymentPassCallbackId = call.callbackId
 
-			let requestPayPass = PKAddPaymentPassRequest()
-			requestPayPass.encryptedPassData = Data(base64Encoded: encryptedPassData, options:[])
-			requestPayPass.ephemeralPublicKey = Data(base64Encoded: ephemeralPublicKey, options:[])
-			requestPayPass.activationData = Data(base64Encoded: activationData, options:[])
+      let requestPayPass = PKAddPaymentPassRequest()
+      requestPayPass.encryptedPassData = Data(base64Encoded: encryptedPassData, options:[])
+      requestPayPass.ephemeralPublicKey = Data(base64Encoded: ephemeralPublicKey, options:[])
+      requestPayPass.activationData = Data(base64Encoded: activationData, options:[])
 
-			self.provisioningHandler?(requestPayPass)
-			return
-		}
+      self.provisioningHandler?(requestPayPass)
+      return
+    }
 
-		if let decodedData = Data(base64Encoded: passthruToIdiSdk), let walletData = try JSONSerialization.jsonObject(with: decodedData, options: .allowFragments) as? [String:String], let forWalletSdk = walletData["forWalletSdk"], let decodedWalletSdkData = Data(base64Encoded: forWalletSdk), let forSdkWalletData = try JSONSerialization.jsonObject(with: decodedWalletSdkData, options: .allowFragments) as? [String:String] {
-			let encryptedPassData = Data(base64Encoded: forSdkWalletData["encryptedPassData"]!)!
-			let activationData = Data(base64Encoded: forSdkWalletData["activationData"]!)!
-			let ephemeralKeyData = Data(base64Encoded: forSdkWalletData["ephemeralPublicKey"]!)!
+    if let decodedData = Data(base64Encoded: passthruToIdiSdk), let walletData = try JSONSerialization.jsonObject(with: decodedData, options: .allowFragments) as? [String:String], let forWalletSdk = walletData["forWalletSdk"], let decodedWalletSdkData = Data(base64Encoded: forWalletSdk), let forSdkWalletData = try JSONSerialization.jsonObject(with: decodedWalletSdkData, options: .allowFragments) as? [String:String] {
+      let encryptedPassData = Data(base64Encoded: forSdkWalletData["encryptedPassData"]!)!
+      let activationData = Data(base64Encoded: forSdkWalletData["activationData"]!)!
+      let ephemeralKeyData = Data(base64Encoded: forSdkWalletData["ephemeralPublicKey"]!)!
 
-			let paymentPassRequest = PKAddPaymentPassRequest()
-			paymentPassRequest.encryptedPassData = encryptedPassData
-			paymentPassRequest.activationData = activationData
-			paymentPassRequest.ephemeralPublicKey = ephemeralKeyData
+      let paymentPassRequest = PKAddPaymentPassRequest()
+      paymentPassRequest.encryptedPassData = encryptedPassData
+      paymentPassRequest.activationData = activationData
+      paymentPassRequest.ephemeralPublicKey = ephemeralKeyData
 
-			self.provisioningHandler?(paymentPassRequest)
-		}
-	}
+      self.provisioningHandler?(paymentPassRequest)
+      self.completeAddPaymentPassCallbackId = call.callbackId
+            self.isRequestIssued = true;
+    }
+  }
 
-	@objc
+  @objc
     func completeAddPaymentPassFromIdiResponseStr(call: CAPPluginCall) throws {
         guard let options = call.options else { throw AddPaymentError.dataNil }
 
@@ -288,7 +307,7 @@ public class TLAppleWallet: NSObject {
         }
     }
 
-	private func preparePassThruFromApp(certificates: [Data], nonce: Data, nonceSignature: Data, cardHolderName: String, cardNickname: String, paymentNetwork: PKPaymentNetwork) -> String? {
+  private func preparePassThruFromApp(certificates: [Data], nonce: Data, nonceSignature: Data, cardHolderName: String, cardNickname: String, paymentNetwork: PKPaymentNetwork) -> String? {
         var encodedCertificatesStr = ""
         for i in 0..<certificates.count {
             let cert = certificates[i]
@@ -329,43 +348,55 @@ public class TLAppleWallet: NSObject {
 // MARK: - PKAddPaymentPassViewControllerDelegate
 extension TLAppleWallet: PKAddPaymentPassViewControllerDelegate {
 
-	public func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController,
-											 generateRequestWithCertificateChain certificates: [Data],
-											 nonce: Data,
-											 nonceSignature: Data,
-											 completionHandler handler: @escaping (PKAddPaymentPassRequest) -> Void) {
-		guard let startAddPaymentPassCallbackId,
-			  let call = self.bridge?.savedCall(withID: startAddPaymentPassCallbackId)
-		else { return }
+  public func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController,
+                       generateRequestWithCertificateChain certificates: [Data],
+                       nonce: Data,
+                       nonceSignature: Data,
+                       completionHandler handler: @escaping (PKAddPaymentPassRequest) -> Void) {
+    guard let startAddPaymentPassCallbackId,
+        let call = self.bridge?.savedCall(withID: startAddPaymentPassCallbackId)
+    else { return }
 
-		self.provisioningHandler = handler
+    self.provisioningHandler = handler
 
-		call.resolve([
-			"nonce": nonce.base64EncodedString(),
+    call.resolve([
+      "nonce": nonce.base64EncodedString(),
             "nonceSignature": nonceSignature.base64EncodedString(),
             "certificates": certificates.map { $0.base64EncodedString() },
             "passThruFromApp": self.preparePassThruFromApp(certificates: certificates, nonce: nonce, nonceSignature: nonceSignature, cardHolderName: cardholderName, cardNickname: localizedDescription, paymentNetwork: paymentNetwork)
-		])
+    ])
 
-		self.startAddPaymentPassCallbackId = nil
-		self.bridge?.releaseCall(call)
-	}
+    self.startAddPaymentPassCallbackId = nil
+    self.bridge?.releaseCall(call)
+  }
 
-	public func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController,
-											 didFinishAdding pass: PKPaymentPass?,
-											 error: (any Error)?) {
-		controller.dismiss(animated: true) { [weak self] in
-			guard let completeAddPaymentPassCallbackId = self?.completeAddPaymentPassCallbackId,
-				  let call = self?.bridge?.savedCall(withID: completeAddPaymentPassCallbackId)
-			else { return }
+  public func addPaymentPassViewController(_ controller: PKAddPaymentPassViewController,
+                       didFinishAdding pass: PKPaymentPass?,
+                       error: (any Error)?) {
+    controller.dismiss(animated: true) { [weak self] in
+      guard let completeAddPaymentPassCallbackId = self?.completeAddPaymentPassCallbackId,
+          let call = self?.bridge?.savedCall(withID: completeAddPaymentPassCallbackId)
+      else { return }
 
-			if let error {
-				call.reject(error.localizedDescription)
-			} else {
-				call.resolve()
-			}
-		}
-	}
+      if let error {
+//         call.reject(error.localizedDescription)
+        self?.isRequestIssuedSuccess = false;
+        do{
+          try? self?.completeAddPaymentPass(call: call);
+        }catch{
+          call.reject(error.localizedDescription)
+        }
+      } else {
+//         call.resolve()
+                self?.isRequestIssuedSuccess = true;
+        do{
+          try? self?.completeAddPaymentPass(call: call);
+        }catch {
+          call.reject(error.localizedDescription)
+        }
+      }
+    }
+  }
 }
 
 extension Data {

@@ -19,7 +19,7 @@ export class TLAppleWalletWeb extends WebPlugin implements TLAppleWalletPlugin {
   startAddPaymentPass(_options: ProvisioningDataRequest): Promise<ProvisioningDataResponse> {
     throw new Error('Method not implemented on Web !');
   }
-  completeAddPaymentPass(_options: ProvisioningFinalDataRequest): Promise<void> {
+  completeAddPaymentPass(_options: ProvisioningFinalDataRequest): Promise<boolean> {
     throw new Error('Method not implemented on Web !');
   }
 

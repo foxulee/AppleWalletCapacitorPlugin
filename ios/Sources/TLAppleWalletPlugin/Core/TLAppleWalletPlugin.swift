@@ -7,7 +7,7 @@ import Capacitor
  */
 @objc(TLAppleWalletPlugin)
 public class TLAppleWalletPlugin: CAPPlugin, CAPBridgedPlugin {
-	
+
 	// MARK: - Variables
 	public let identifier = "TLAppleWalletPlugin"
 	public let jsName = "TLAppleWallet"
@@ -16,11 +16,11 @@ public class TLAppleWalletPlugin: CAPPlugin, CAPBridgedPlugin {
 		CAPPluginMethod(name: "getActionsAvailableForCardSuffix", returnType: CAPPluginReturnPromise),
 		CAPPluginMethod(name: "openCard", returnType: CAPPluginReturnNone),
 		CAPPluginMethod(name: "startAddPaymentPass", returnType: CAPPluginReturnPromise),
-		CAPPluginMethod(name: "completeAddPaymentPass", returnType: CAPPluginReturnNone)
+		CAPPluginMethod(name: "completeAddPaymentPass", returnType: CAPPluginReturnPromise)
 	]
-	
+
 	private let implementation = TLAppleWallet()
-	
+
 	// MARK: - Init
 	@objc
 	public func initialize(_ call: CAPPluginCall) {
@@ -31,7 +31,7 @@ public class TLAppleWalletPlugin: CAPPlugin, CAPBridgedPlugin {
 			call.reject(error.localizedDescription)
 		}
 	}
-	
+
 	@objc
 	func getActionsAvailableForCardSuffix(_ call: CAPPluginCall) {
 		guard let cardSuffix = call.getString("cardSuffix")
@@ -39,7 +39,7 @@ public class TLAppleWalletPlugin: CAPPlugin, CAPBridgedPlugin {
 			call.reject("cardSuffix PARAMETER IS NOT PASSED !")
 			return
 		}
-		
+
 		do {
 			let actions = try self.implementation.getActionsAvailable(for: cardSuffix)
 			call.resolve(["actions": actions])
@@ -47,7 +47,7 @@ public class TLAppleWalletPlugin: CAPPlugin, CAPBridgedPlugin {
 			call.reject(error.localizedDescription)
 		}
 	}
-	
+
 	@objc
 	func openCard(_ call: CAPPluginCall) {
 		guard let cardSuffix = call.getString("cardSuffix")
@@ -55,7 +55,7 @@ public class TLAppleWalletPlugin: CAPPlugin, CAPBridgedPlugin {
 			call.reject("cardSuffix PARAMETER IS NOT PASSED !")
 			return
 		}
-		
+
 		DispatchQueue.main.async { [implementation] in
 			do {
 				try implementation.openCard(cardSuffix: cardSuffix)
@@ -64,7 +64,7 @@ public class TLAppleWalletPlugin: CAPPlugin, CAPBridgedPlugin {
 			}
 		}
 	}
-	
+
 	@objc
 	func startAddPaymentPass(_ call: CAPPluginCall) {
 		DispatchQueue.main.async { [implementation, bridge] in
@@ -75,7 +75,7 @@ public class TLAppleWalletPlugin: CAPPlugin, CAPBridgedPlugin {
 			}
 		}
 	}
-	
+
 	@objc
 	public func completeAddPaymentPass(_ call: CAPPluginCall) {
 		do {
